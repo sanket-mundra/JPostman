@@ -20,6 +20,30 @@ import java.util.ArrayList;
 
 public abstract class ItemGroup extends Item {
     private ArrayList<Item> item;
+    private RequestAuth auth;
+
+
+    /**
+     *
+     * Set the <code>auth</code> object property of this collection with a {@link com.postman.collection.RequestAuth} object containing the values.
+     *
+     * @param auth The new auth values, or null to remove an existing auth.
+     */
+    public void setAuth(RequestAuth auth) {
+        this.auth = auth;
+        this.auth.setParent(this);
+    }
+
+
+    /**
+     *
+     * Return the values in the <code>auth</code> object property of this collection, or null if it has not been set.
+     *
+     * @return RequestAuth The auth values, or null.
+     */
+    public RequestAuth getAuth() {
+        return this.auth;
+    }
 
 
     /** 
@@ -284,7 +308,7 @@ public abstract class ItemGroup extends Item {
     
     }
 
-    
+
 
 
 

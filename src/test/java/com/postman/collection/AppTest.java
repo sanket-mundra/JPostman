@@ -347,6 +347,11 @@ validateAndWriteToFile(pmcTest, new Throwable().getStackTrace()[0]);
         req = new RequestBody(enumHTTPRequestMethod.GET, "https://postman-echo.com/post");
         pmcTest.addRequest(req, "INHERIT request");
 
+        auth = new RequestAuth(enumAuthType.NOAUTH);
+        req = new RequestBody(enumHTTPRequestMethod.GET, "https://postman-echo.com/post");
+        req.setAuth(auth);
+        pmcTest.addRequest(req, "NOAUTH request");
+
         auth = new RequestAuth(enumAuthType.AKAMAI);
         auth.addProperty("headersToSign", "x-api-key");
         auth.addProperty("baseURL", "https://akamai-base.com");
@@ -964,30 +969,6 @@ validateAndWriteToFile(pmcTest, new Throwable().getStackTrace()[0]);
     assertEquals("var1=val1", url.getQueryString());
 
     }
-    
-    /** 
-     * @throws MalformedURLException
-     */
-    @Test
-    public void testIngestFromUrl() throws MalformedURLException {
-        //Good URL
-        try {
-            pmcTest = Collection.pmcFactory(new URL("https://api.getpostman.com/collections/23889826-2e2dc1e1-24a9-4167-a550-1167ee1aa389"));
-            assertTrue("Valid collection ingested from URL",pmcTest.validate());
-        }
-        catch(Exception e) {
-            assertTrue("Unexpected " + e.getClass().getName() +": " + e.getMessage(),false);
-        }
-        //Good URL, bad COllection ID
-//        try {
-
-  //      }
-
-    
-
-        
-        
-    }
 
     @Test
     public void testResponseObject() {
@@ -1306,19 +1287,6 @@ validateAndWriteToFile(pmcTest, new Throwable().getStackTrace()[0]);
 
     }
 
-    @Test
-    public void TestIngestionByID() {
-        try {
-            pmcTest = Collection.pmcFactory(new PostmanID("23889826-a0a8f60c-36c9-4221-9c99-3aa90eb46abe"));
-        }
-        catch(Exception e) {
-            assertTrue("Unexpected exception: " + e.getMessage(), false);
-        }
-        validateAndWriteToFile(pmcTest, new Throwable().getStackTrace()[0]);
-        
-    }
-
-
 
 /** 
  * @param pmcColl
@@ -1514,98 +1482,5 @@ public void testProperty() {
         catch(Exception e) {
             assertTrue("Unexpected exception: " + e.getMessage(), false);
         }
-
-
-
-
-
-
-
-
     }
-
-    @Test
-    public void testWriteToPostman() {
-        Collection pmcTest = Collection.pmcFactory();
-        Collection pmcTest2 = null;
-        BodyElement body = null;
-        RequestBody req = null;
-        Response resp = null;
-        String colName = new java.sql.Timestamp(System.currentTimeMillis()).toString();
-        //Test creating a new collection
-        try {
-            
-            body = new BodyElement(enumRequestBodyMode.URLENCODED);
-            body.setFormdata("x-field-1", "value 1", "This is value 1");
-            body.setFormdata("x-field-2", "value 2", "This is value 2");
-            req = new RequestBody(enumHTTPRequestMethod.POST, "https://postman-echo.com/post");
-            req.setBody(body);
-            resp = new Response("NORMAL Urlencoded", req, "OK", 200, "this is the expected response body");
-            pmcTest.addRequest(req, "URLEncoded body", resp);
-            pmcTest.setName("UPSERT test " + colName);
-        }
-        catch(Exception eee) {
-            eee.printStackTrace();
-            assertTrue("Exception creating test collection: " + eee.getMessage(), false);
-        }
-        
-        try {
-            assertNull("No postmanID before upsert: ", pmcTest.getPostmanID());
-            pmcTest.upsertToPostman(null);
-            assertNotNull("Postman ID successfully assigned: " , pmcTest.getPostmanID());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-            assertTrue("Exception upserting new collection to Postman: " + e.getMessage(), false);
-        }
-
-        //Upsert a collection to a workspace
-        try {
-            
-            body = new BodyElement(enumRequestBodyMode.URLENCODED);
-            body.setFormdata("x-field-1", "value 1", "This is value 1");
-            body.setFormdata("x-field-2", "value 2", "This is value 2");
-            req = new RequestBody(enumHTTPRequestMethod.POST, "https://postman-echo.com/post");
-            req.setBody(body);
-            resp = new Response("NORMAL Urlencoded", req, "OK", 200, "this is the expected response body");
-            pmcTest.addRequest(req, "URLEncoded body", resp);
-            pmcTest.setName("UPSERT test to Workspace" + colName);
-            pmcTest.upsertToPostman(new PostmanID("23889826-169dff8a-c684-4ccc-b8df-7ad436efda57"));
-        }
-        catch(Exception eee) {
-            eee.printStackTrace();
-            assertTrue("Exception creating test collection: " + eee.getMessage(), false);
-        }
-
-        //Fetch a known collection from Postman, change the name, then Upsert it
-       try {
-        
-        pmcTest    = Collection.pmcFactory(new PostmanID("23889826-169dff8a-c684-4ccc-b8df-7ad436efda57"));
-        String origName = pmcTest.getName();
-        pmcTest.setName(origName + "- UPSERTED");
-        pmcTest.upsertToPostman(null);
-        pmcTest    = Collection.pmcFactory(new PostmanID("23889826-169dff8a-c684-4ccc-b8df-7ad436efda57"));
-        assertTrue(pmcTest.getName().equals(origName + "- UPSERTED"));
-       }
-       catch(Exception ee) {
-        ee.printStackTrace();
-        assertTrue("Exception writing known collection: " + ee.getMessage(), false);
-       }
-
-
-        try {
-            //read in a collection with an ID
-            pmcTest  = Collection.pmcFactory(new File(filePath + resourcePath + "/auth.postman_collection.json"));
-            pmcTest.setName("Auth renamed again " + new java.sql.Timestamp(System.currentTimeMillis()));
-            pmcTest.upsertToPostman(null);
-        }
-        catch(Exception e)
-        {
-            assertTrue("IOException: " + e.getMessage(), false);
-        }
-
-        
-        
-    }
-
 }

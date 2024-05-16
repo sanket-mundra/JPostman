@@ -38,16 +38,18 @@ public class AuthDeserializer implements JsonDeserializer<RequestAuth> {
         JsonObject jObject = jElement.getAsJsonObject();
         JsonObject curVar;
         String type = jObject.get("type").getAsString();
+        RequestAuth auth = new RequestAuth(type);
+        if (!jObject.has(type)) {
+            return auth;
+        }
+
         JsonArray vars = jObject.get(type).getAsJsonArray();
         Property pvVar;
-        RequestAuth auth = new RequestAuth(jObject.get("type").getAsString());
         String curKey;
         String curVal;
         String curType;
         for (int i = 0; i < vars.size(); i++) {
             curVar = vars.get(i).getAsJsonObject();
-            curVar.get("key");
-            
             curKey = curVar.get("key") == null ? null : curVar.get("key").getAsString();
             curVal = curVar.get("value") == null ? null : curVar.get("value").getAsString();
             curType = curVar.get("type") == null ? null : curVar.get("type").getAsString();

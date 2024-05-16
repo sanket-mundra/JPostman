@@ -47,7 +47,7 @@ public class RequestAuth extends CollectionElement {
 
     private String type = "";
     private PropertyList<Property> properties = null;
-    private transient String[] arrTypes = new String[10];
+    private transient String[] arrTypes = new String[11];
 
     
     
@@ -70,6 +70,7 @@ public class RequestAuth extends CollectionElement {
         arrTypes[enumAuthType.OAUTH1.ordinal()] = "oauth1";
         arrTypes[enumAuthType.OAUTH2.ordinal()] = "oauth2";
         arrTypes[enumAuthType.NTLM.ordinal()] = "ntlm";
+        arrTypes[enumAuthType.NOAUTH.ordinal()] = "noauth";
     }
 
     /** 
@@ -129,8 +130,14 @@ public class RequestAuth extends CollectionElement {
     public enumAuthType getAuthType() {
 
         switch (type) {
-            case "apikey", "bearer": {
+            case "noauth": {
+                return enumAuthType.NOAUTH;
+            }
+            case "apikey": {
                 return enumAuthType.APIKEY;
+            }
+            case "bearer": {
+                return enumAuthType.BEARER;
             }
             case "digest": {
                 return enumAuthType.DIGEST;
@@ -173,6 +180,9 @@ public class RequestAuth extends CollectionElement {
         this.type = arrTypes[(type.ordinal())];
         PropertyList<Property> newProps = new PropertyList<Property>();
         switch (type) {
+            case NOAUTH:
+                // no-op
+                break;
             case AKAMAI: {
                 newProps.add(new Property("headersToSign", null));
                 newProps.add(new Property("baseURL",null));
