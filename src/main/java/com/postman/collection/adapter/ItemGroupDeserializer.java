@@ -43,6 +43,12 @@ public class ItemGroupDeserializer implements JsonDeserializer<ItemGroup> {
             }
             ArrayList<Item> items = context.deserialize(jObject.getAsJsonArray("item"), typeItem);
             newFolder.setItems(items);
+
+            if (!jObject.has("auth")) {
+                return newFolder;
+            }
+            RequestAuth auth = context.deserialize(jObject.get("auth"), RequestAuth.class);
+            newFolder.setAuth(auth);
             
             return newFolder;
         

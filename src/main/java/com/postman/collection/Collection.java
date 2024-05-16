@@ -12,6 +12,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.GsonBuilder;
 import com.google.gson.Gson;
 import java.lang.reflect.Type;
@@ -72,9 +75,8 @@ import java.util.regex.Matcher;
  */
 public class Collection extends ItemGroup {
 
-    
-    
-    private RequestAuth auth = null;
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     private HashMap<String, String> info;
     private PropertyList<Property> variable = null;
     
@@ -496,14 +498,21 @@ public class Collection extends ItemGroup {
      * @param json
      * @return Collection
      */
-    public static Collection pmcFactory(String json) {
+    public static Collection pmcFactory(String json) throws JsonProcessingException {
+        JsonNode collectionJson = objectMapper.readTree(json);
+
+        // collections migrated from 1.0.0 to 2.0.0 have an extra collection block nesting
+        // removing the collection block nesting for them
+        JsonNode updatedCollectionJson = getCollection(collectionJson);
+        String updatedJson = updatedCollectionJson.toString();
+
         Collection pmcRetVal;
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(RequestAuth.class, new com.postman.collection.adapter.AuthDeserializer());
         gsonBuilder.registerTypeAdapter(Property.class, new com.postman.collection.adapter.PropertyDeserializer());
         gsonBuilder.registerTypeAdapter(Item.class, new com.postman.collection.adapter.ItemDeserializer());
         gsonBuilder.registerTypeAdapter(ItemGroup.class, new com.postman.collection.adapter.ItemGroupDeserializer());
-        pmcRetVal = gsonBuilder.create().fromJson(json, Collection.class);
+        pmcRetVal = gsonBuilder.create().fromJson(updatedJson, Collection.class);
         pmcRetVal.init();
 
         return pmcRetVal;
@@ -790,30 +799,6 @@ public class Collection extends ItemGroup {
        
     }
 
-
-
-    
-    /** 
-     * 
-     * Set the <code>auth</code> object property of this collection with a {@link com.postman.collection.RequestAuth} object containing the values.  
-     * 
-     * @param auth The new auth values, or null to remove an existing auth.
-     */
-    public void setAuth(RequestAuth auth) {
-        this.auth = auth;
-    }
-
-    
-    /** 
-     * 
-     * Return the values in the <code>auth</code> object property of this collection, or null if it has not been set.
-     * 
-     * @return RequestAuth The auth values, or null.  
-     */
-    public RequestAuth getAuth() {
-        return this.auth;
-    }
-
     
     
     /** 
@@ -989,5 +974,18 @@ public class Collection extends ItemGroup {
         this.variable.addAll(newVars);
     }   
 
-    
+    private static JsonNode getCollection(JsonNode collectionJson) {
+        if (hasCollectionBlock(collectionJson)) {
+            return getCollectionBlock(collectionJson);
+        }
+        return collectionJson;
+    }
+
+    private static boolean hasCollectionBlock(JsonNode jsonNode) {
+        return jsonNode.has("collection");
+    }
+
+    private static JsonNode getCollectionBlock(JsonNode jsonNode) {
+        return jsonNode.get("collection");
+    }
 }
